@@ -11,6 +11,7 @@ declare global {
   namespace Express {
     interface Request {
       adminId?: string;
+      role?: "admin" | "manager";
       apiKeyId?: string;
       rawBody?: Buffer;
     }
@@ -31,13 +32,24 @@ export function adminIdFromToken(token: string): string | null {
 
 const bearer = (req: Request) => req.headers.authorization?.match(/^Bearer (.+)$/i)?.[1];
 
+/** Any signed-in staff member (admin or manager). Re-checked against the DB on every call, so deactivation is immediate. */
 export async function requireAdmin(req: Request, _res: Response, next: NextFunction) {
   const token = bearer(req);
   const id = token ? adminIdFromToken(token) : null;
-  if (!id || !(await Admin.exists({ _id: id }))) throw new AppError(401, "Authentication required", "UNAUTHORIZED");
+  const staff = id ? await Admin.findById(id).select("role active").lean() : null;
+  if (!id || !staff || staff.active === false) throw new AppError(401, "Authentication required", "UNAUTHORIZED");
   req.adminId = id;
+  req.role = staff.role ?? "admin"; // accounts created before roles existed are admins
   next();
 }
+
+/** Restrict a route to one of the given roles (use after requireAdmin). */
+export const requireRole =
+  (...roles: ("admin" | "manager")[]) =>
+  (req: Request, _res: Response, next: NextFunction) => {
+    if (!req.role || !roles.includes(req.role)) throw new AppError(403, "You don't have permission to do this", "FORBIDDEN");
+    next();
+  };
 
 export async function requireApiKey(req: Request, _res: Response, next: NextFunction) {
   const key = req.headers["x-api-key"];

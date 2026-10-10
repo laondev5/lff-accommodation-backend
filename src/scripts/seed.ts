@@ -12,7 +12,7 @@ async function main() {
   const password = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe123!";
 
   if (!(await Admin.exists({ email }))) {
-    await Admin.create({ name: process.env.SEED_ADMIN_NAME ?? "Church Admin", email, password: await bcrypt.hash(password, 12) });
+    await Admin.create({ role: "admin", name: process.env.SEED_ADMIN_NAME ?? "Church Admin", email, password: await bcrypt.hash(password, 12) });
     console.log(`Created admin ${email}`);
   } else console.log(`Admin ${email} already exists`);
 

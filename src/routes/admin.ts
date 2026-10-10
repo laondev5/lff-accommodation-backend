@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
-import { requireAdmin } from "../middleware/auth";
+import { requireAdmin, requireRole } from "../middleware/auth";
+import teamRoutes from "./team";
 import { Accommodation, ACCOMMODATION_TYPES } from "../models/Accommodation";
 import { ApiKey } from "../models/ApiKey";
 import { Booking, BOOKING_STATUSES } from "../models/Booking";
@@ -340,6 +341,9 @@ r.put("/settings", async (req, res) => {
 });
 
 // ---- API keys for third-party apps ----------------------------------------------------------------
+// Admin-only areas: API keys and team (manager) management. Managers get everything else.
+r.use("/team", requireRole("admin"), teamRoutes);
+r.use("/api-keys", requireRole("admin"));
 r.get("/api-keys", async (_req, res) => ok(res, await ApiKey.find().select("-keyHash -webhookSecret").sort({ createdAt: -1 })));
 r.post("/api-keys", async (req, res) => {
   const { name, webhookUrl } = z.object({ name: z.string().trim().min(2).max(80), webhookUrl: z.string().url().optional() }).parse(req.body);

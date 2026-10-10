@@ -54,7 +54,7 @@ r.post("/pusher/auth", async (req, res) => {
   if (channel_name === "private-admin") {
     const bearer = req.headers.authorization?.match(/^Bearer (.+)$/i)?.[1];
     const id = bearer ? adminIdFromToken(bearer) : null;
-    if (!id || !(await Admin.exists({ _id: id }))) throw new AppError(403, "Forbidden");
+    if (!id || !(await Admin.exists({ _id: id, active: { $ne: false } }))) throw new AppError(403, "Forbidden");
   } else if (channel_name.startsWith("private-booking-")) {
     const code = channel_name.slice("private-booking-".length);
     const ok = token && (await Booking.exists({ code, profileToken: token, profileExpiresAt: { $gt: new Date() } }));

@@ -19,7 +19,7 @@ export async function notifyAdmins({ type, title, message, data, email = true }:
   const tasks: Promise<unknown>[] = [push(ADMIN_CHANNEL, "notification", doc.toJSON())];
   if (email) {
     tasks.push(
-      Admin.find().select("email").lean().then((admins: { email: string }[]) =>
+      Admin.find({ active: { $ne: false } }).select("email").lean().then((admins: { email: string }[]) =>
         sendEmail(admins.map((a) => a.email), title, adminAlertEmail(title, message)),
       ),
     );
