@@ -3,14 +3,18 @@
     "target": "ES2022",
     "module": "node16",
     "moduleResolution": "node16",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "types": ["node"]
+    "noEmit": true
   },
-  "include": ["src/**/*", "api/**/*"]
+  "include": [
+    "src/**/*",
+    "api/**/*"
+  ]
 }
